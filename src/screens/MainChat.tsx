@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import { useVoiceInteraction, type CompanionContext, OPENAI_VOICES } from '../hooks/useVoiceInteraction';
 import { useApp } from '../context/AppContext';
 import { AvatarRenderer } from '../components/AvatarRenderer';
@@ -10,7 +10,9 @@ import { ConversationHistory } from '../components/ConversationHistory';
 import { TextInputFallback } from '../components/TextInputFallback';
 import { ConversationPrompts } from '../components/ConversationPrompts';
 import { MemoryPeek, useMemoryPeek } from '../components/MemoryPeek';
+import { ImageMessage } from '../components/ImageMessage';
 import { STATE_COLORS } from '../types';
+import { generateCompanionPhoto, isDigitalTwinConfigured } from '../lib/digitalTwin';
 
 /** Redesigned main chat screen — voice-first with companion portrait, prompts, and memory peek. */
 export function MainChat() {
@@ -44,9 +46,11 @@ export function MainChat() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [memoryText, setMemoryText] = useState<string | null>(null);
   const [voiceMenuOpen, setVoiceMenuOpen] = useState(false);
+  const [photoMessages, setPhotoMessages] = useState<Record<string, { url?: string; prompt?: string; generating: boolean }>>({});
 
   const isIdle = state === 'idle';
   const hasMessages = messages.length > 0;
+  const twinAvailable = isDigitalTwinConfigured();
   const { visible: memoryPeekVisible, setVisible: setMemoryPeekVisible } = useMemoryPeek(isIdle, hasMessages);
 
   // Redirect if no companion selected
@@ -86,22 +90,62 @@ export function MainChat() {
     setMemoryPeekVisible(false);
   };
 
+  // Request companion photo — uses digital-twin-generator for in-chat image generation
+  const handleRequestPhoto = useCallback(async () => {
+    if (!companion?.avatarImage || !twinAvailable) return;
+
+    const photoId = `photo_${Date.now()}`;
+    const prompts = [
+      'A candid selfie, smiling warmly at the camera',
+      'Relaxing at a cozy cafe, natural lighting',
+      'A thoughtful portrait, soft focus, evening light',
+      'Outdoors in a garden, golden hour sunlight',
+      'A casual moment, laughing, candid shot',
+    ];
+    const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+
+    // Set loading state
+    setPhotoMessages(prev => ({ ...prev, [photoId]: { prompt, generating: true } }));
+
+    try {
+      const imageUrl = await generateCompanionPhoto(
+        companion.avatarImage!,
+        prompt,
+        { qualityMode: 'fast' }
+      );
+      setPhotoMessages(prev => ({ ...prev, [photoId]: { url: imageUrl, prompt, generating: false } }));
+
+      // Persist to localStorage for gallery display in CompanionProfile
+      if (imageUrl) {
+        try {
+          const key = `soullink_photos_${companion.id}`;
+          const existing = JSON.parse(localStorage.getItem(key) || '[]');
+          existing.unshift({ url: imageUrl, prompt, timestamp: Date.now() });
+          localStorage.setItem(key, JSON.stringify(existing.slice(0, 50)));
+        } catch {
+          // storage might be full
+        }
+      }
+    } catch (err) {
+      setPhotoMessages(prev => ({ ...prev, [photoId]: { prompt, generating: false } }));
+    }
+  }, [companion, twinAvailable]);
+
   return (
     <div
       style={{
         height: '100%',
         display: 'flex',
         flexDirection: 'column',
-        background: `
-          radial-gradient(ellipse at 50% 20%, ${accent}0a 0%, transparent 60%),
-          radial-gradient(ellipse at 50% 80%, ${stateColor}08 0%, transparent 50%),
-          var(--bg-primary)
-        `,
+        background: 'var(--bg-primary)',
         transition: 'background 0.8s ease',
         position: 'relative',
         overflow: 'hidden',
       }}
     >
+      {/* Aurora mesh background */}
+      <div className="aurora-bg" />
+
       {/* ===== Header ===== */}
       <header
         style={{
@@ -110,6 +154,8 @@ export function MainChat() {
           justifyContent: 'space-between',
           padding: 'calc(var(--safe-top) + 10px) 16px 8px',
           flexShrink: 0,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         {/* Companion name + thumbnail */}
@@ -142,7 +188,7 @@ export function MainChat() {
             </span>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 15, fontWeight: 600, color: '#E8E8F0', letterSpacing: 0.3 }}>
+            <span style={{ fontSize: 15, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: 0.3, fontFamily: 'var(--font-display)' }}>
               {companion.name}
             </span>
             <span style={{ fontSize: 10, color: accent }}>
@@ -152,7 +198,7 @@ export function MainChat() {
         </button>
 
         {/* Status + profile */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           {state !== 'idle' && (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
               <span
@@ -164,10 +210,36 @@ export function MainChat() {
                   animation: 'breathe 1.5s ease-in-out infinite',
                 }}
               />
-                            <span style={{ fontSize: 11, color: '#5A5A70' }}>
+                            <span style={{ fontSize: 11, color: 'var(--text-muted)' }}>
                 Active
               </span>
             </div>
+          )}
+          {/* Request Photo button — uses digital-twin-generator */}
+          {twinAvailable && companion.avatarImage && (
+            <button
+              className="pressable"
+              onClick={handleRequestPhoto}
+              disabled={state !== 'idle'}
+              aria-label="Request a photo"
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: 10,
+                border: 'none',
+                cursor: state === 'idle' ? 'pointer' : 'default',
+                background: 'var(--surface-2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                opacity: state === 'idle' ? 1 : 0.4,
+              }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2v11z" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="12" cy="13" r="4" stroke="var(--text-secondary)" strokeWidth="1.5" />
+              </svg>
+            </button>
           )}
           <button
             onClick={() => navigate('profile')}
@@ -178,7 +250,7 @@ export function MainChat() {
               borderRadius: 10,
               border: 'none',
               cursor: 'pointer',
-              background: 'var(--glass-bg)',
+              background: 'var(--surface-2)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -200,9 +272,9 @@ export function MainChat() {
           left: 0,
           right: 0,
           bottom: 0,
-          background: 'rgba(10, 10, 20, 0.85)',
-          backdropFilter: 'blur(16px)',
-          WebkitBackdropFilter: 'blur(16px)',
+          background: 'rgba(8, 8, 15, 0.92)',
+          backdropFilter: 'var(--glass-blur)',
+          WebkitBackdropFilter: 'var(--glass-blur)',
           zIndex: 100,
           transform: historyOpen ? 'translateY(0)' : 'translateY(100%)',
           transition: 'transform 0.35s cubic-bezier(0.4, 0, 0.2, 1)',
@@ -258,6 +330,8 @@ export function MainChat() {
           gap: 20,
           padding: '12px 0',
           minHeight: 0,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
                 {/* Companion Avatar */}
@@ -268,6 +342,7 @@ export function MainChat() {
           state={state}
           emotion={currentEmotion}
           audioLevel={audioLevel}
+          showTwinBadge={!companion.avatarImage?.includes('pravatar')}
         />
 
         {/* Waveform */}
@@ -282,6 +357,18 @@ export function MainChat() {
           state={state}
           emotion={currentEmotion}
         />
+
+        {/* Generated companion photos */}
+        {Object.entries(photoMessages).map(([id, photo]) => (
+          <ImageMessage
+            key={id}
+            imageUrl={photo.url}
+            prompt={photo.prompt}
+            isGenerating={photo.generating}
+            accent={accent}
+            onRetry={handleRequestPhoto}
+          />
+        ))}
 
         {/* Conversation Prompts (idle state only) */}
         {isIdle && messages.length === 0 && (
@@ -305,11 +392,13 @@ export function MainChat() {
         style={{
           flexShrink: 0,
           padding: '8px 20px 0',
-          borderTop: '1px solid rgba(255,255,255,0.05)',
+          borderTop: '1px solid var(--border-subtle)',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           gap: 12,
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         {/* Conversation history toggle */}
@@ -349,8 +438,8 @@ export function MainChat() {
             onClick={toggleVoiceOutput}
             aria-label={voiceOutputEnabled ? 'Mute voice output' : 'Unmute voice output'}
             style={{
-              background: voiceOutputEnabled ? 'rgba(255,255,255,0.08)' : 'none',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: voiceOutputEnabled ? 'var(--surface-3)' : 'none',
+              border: '1px solid var(--border-default)',
               cursor: 'pointer',
               color: voiceOutputEnabled ? accent : 'var(--text-muted)',
               borderRadius: '50%',
@@ -382,8 +471,8 @@ export function MainChat() {
             onClick={() => setVoiceMenuOpen(prev => !prev)}
             aria-label="Select voice"
             style={{
-              background: voiceMenuOpen ? 'rgba(255,255,255,0.08)' : 'none',
-              border: '1px solid rgba(255,255,255,0.1)',
+              background: voiceMenuOpen ? 'var(--surface-3)' : 'none',
+              border: '1px solid var(--border-default)',
               cursor: 'pointer',
               color: voiceMenuOpen ? accent : 'var(--text-muted)',
               borderRadius: '50%',
@@ -420,10 +509,10 @@ export function MainChat() {
                   bottom: '100%',
                   right: 0,
                   marginBottom: 8,
-                  background: 'rgba(20, 20, 30, 0.96)',
-                  backdropFilter: 'blur(20px)',
-                  WebkitBackdropFilter: 'blur(20px)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(14, 14, 26, 0.96)',
+                  backdropFilter: 'var(--glass-blur)',
+                  WebkitBackdropFilter: 'var(--glass-blur)',
+                  border: '1px solid var(--border-default)',
                   borderRadius: 16,
                   padding: 8,
                   minWidth: 240,
@@ -462,7 +551,7 @@ export function MainChat() {
                     {/* Gender icon */}
                     <div style={{
                       width: 28, height: 28, borderRadius: '50%',
-                      background: selectedVoice === voice.id ? `${accent}25` : 'rgba(255,255,255,0.06)',
+                      background: selectedVoice === voice.id ? `${accent}25` : 'var(--surface-2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center',
                       flexShrink: 0,
                     }}>

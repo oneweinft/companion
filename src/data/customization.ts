@@ -74,6 +74,8 @@ export interface CompanionCustomization {
   story: string;
   communicationMode: CommunicationMode;
   appearance: AppearanceAttributes;
+  /** Optional user-generated avatar (from digital twin upload). Overrides base companion avatar. */
+  avatarImage?: string;
 }
 
 /** A Companion merged with user customization — what the app actually renders. */
@@ -252,6 +254,7 @@ export function buildEffectiveCompanion(cust: CompanionCustomization): Customize
     gradientFrom: cust.visual.gradientFrom,
     gradientTo: cust.visual.gradientTo,
     defaultGreeting: generateGreeting(cust),
+    avatarImage: cust.avatarImage || base.avatarImage,
     relationshipMode: cust.relationshipMode,
     personality: cust.personality,
     visual: cust.visual,

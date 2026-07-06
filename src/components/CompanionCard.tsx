@@ -13,6 +13,7 @@ export function CompanionCard({ companion, isSelected, onSelect }: CompanionCard
 
   return (
     <button
+      className="pressable"
       onClick={onSelect}
       style={{
         display: 'flex',
@@ -23,17 +24,15 @@ export function CompanionCard({ companion, isSelected, onSelect }: CompanionCard
         borderRadius: 20,
         cursor: 'pointer',
         background: isSelected
-          ? `linear-gradient(135deg, ${companion.accentColor}20, ${companion.accentColor}08)`
-          : 'var(--glass-bg)',
-        backdropFilter: 'var(--glass-blur)',
-        WebkitBackdropFilter: 'var(--glass-blur)',
+          ? `${companion.accentColor}0a`
+          : 'var(--surface-1)',
         border: isSelected
           ? `1.5px solid ${companion.accentColor}80`
-          : '1px solid var(--glass-border)',
+          : '1px solid var(--border-subtle)',
         boxShadow: isSelected
-          ? `0 4px 24px ${companion.accentColor}30, inset 0 1px 0 rgba(255,255,255,0.08)`
-          : '0 4px 16px rgba(0,0,0,0.2)',
-        transition: 'all 0.3s ease',
+          ? `0 4px 24px ${companion.accentColor}25, var(--shadow-inset)`
+          : 'var(--shadow-sm), var(--shadow-inset)',
+        transition: 'all 0.2s ease',
         transform: isSelected ? 'scale(1.02)' : 'scale(1)',
         width: '100%',
         textAlign: 'center',
@@ -97,7 +96,7 @@ export function CompanionCard({ companion, isSelected, onSelect }: CompanionCard
 
       {/* Name + archetype */}
       <div>
-        <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)' }}>
+        <div style={{ fontSize: 17, fontWeight: 600, color: 'var(--text-primary)', fontFamily: 'var(--font-display)' }}>
           {companion.name}
         </div>
         <div style={{ fontSize: 12, color: companion.accentColor, marginTop: 2 }}>

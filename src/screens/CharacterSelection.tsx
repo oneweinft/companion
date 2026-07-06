@@ -27,8 +27,10 @@ export function CharacterSelection() {
         flexDirection: 'column',
         background: 'var(--bg-primary)',
         padding: 'calc(var(--safe-top) + 16px) 20px calc(var(--safe-bottom) + 16px)',
+        position: 'relative',
       }}
     >
+      <div className="aurora-bg" />
       {/* Back button */}
       <button
         onClick={() => navigate('welcome')}
@@ -53,20 +55,23 @@ export function CharacterSelection() {
       </button>
 
       {/* Header */}
-      <div style={{ marginBottom: 24, animation: 'fade-in-up 0.5s ease' }}>
+      <div style={{ marginBottom: 24, animation: 'fade-in-up 0.5s ease', position: 'relative', zIndex: 1 }}>
         <h1
           style={{
+            fontFamily: 'var(--font-display)',
             fontSize: 28,
-            fontWeight: 700,
+            fontWeight: 600,
             color: 'var(--text-primary)',
             margin: 0,
             letterSpacing: -0.5,
+            lineHeight: 1.15,
           }}
         >
           Choose Your Companion
         </h1>
         <p
           style={{
+            fontFamily: 'var(--font-body)',
             fontSize: 14,
             color: 'var(--text-secondary)',
             marginTop: 6,
@@ -85,6 +90,8 @@ export function CharacterSelection() {
           gap: 12,
           marginBottom: 16,
           animation: 'fade-in-up 0.5s ease 0.1s both',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         {COMPANIONS.map(companion => (
@@ -100,11 +107,14 @@ export function CharacterSelection() {
       {/* Bio detail for selected companion */}
       {selected && (
         <div
-          className="glass-panel"
+          className="surface-card"
           style={{
             padding: 16,
             marginBottom: 16,
+            borderRadius: 18,
             animation: 'fade-in 0.3s ease',
+            position: 'relative',
+            zIndex: 1,
           }}
         >
           <p
@@ -134,8 +144,9 @@ export function CharacterSelection() {
       )}
 
       {/* CTA */}
-      <div style={{ marginTop: 'auto' }}>
+      <div style={{ marginTop: 'auto', position: 'relative', zIndex: 1 }}>
         <button
+          className="pressable"
           onClick={handleConnect}
           disabled={!selectedId}
           style={{

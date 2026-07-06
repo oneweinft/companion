@@ -8,6 +8,7 @@ import { CharacterSelection } from './screens/CharacterSelection';
 import { RelationshipMode } from './screens/RelationshipMode';
 import { PersonalityComposer } from './screens/PersonalityComposer';
 import { CharacterCreator } from './screens/CharacterCreator';
+import { DigitalTwinUpload } from './screens/DigitalTwinUpload';
 import { VoiceSelection } from './screens/VoiceSelection';
 import { NameStory } from './screens/NameStory';
 import { FirstMeeting } from './screens/FirstMeeting';
@@ -28,6 +29,8 @@ function ScreenRouter() {
       return <PersonalityComposer />;
     case 'characterCreator':
       return <CharacterCreator />;
+    case 'digitalTwinUpload':
+      return <DigitalTwinUpload />;
     case 'voiceSelection':
       return <VoiceSelection />;
     case 'nameStory':
@@ -50,7 +53,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--glass-border)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--border-default)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }
@@ -73,7 +76,7 @@ function SubscriptionGate({ children }: { children: React.ReactNode }) {
   if (loading) {
     return (
       <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--bg-primary)' }}>
-        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--glass-border)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.8s linear infinite' }} />
+        <div style={{ width: 40, height: 40, borderRadius: '50%', border: '3px solid var(--border-default)', borderTopColor: 'var(--color-accent)', animation: 'spin 0.8s linear infinite' }} />
       </div>
     );
   }

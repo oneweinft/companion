@@ -24,13 +24,19 @@ export interface EmotionState {
   arousal: number;
 }
 
+export type MessageType = 'text' | 'image' | 'voice';
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'assistant';
   content: string;
+  messageType?: MessageType;
+  imageUrl?: string;
+  imagePrompt?: string;
   emotion?: EmotionLabel;
   timestamp: number;
   isStreaming?: boolean;
+  isGenerating?: boolean;
 }
 
 /** Emotion → color mapping (from SoulLink avatar_sync.py) */

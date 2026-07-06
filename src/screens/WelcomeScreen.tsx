@@ -12,44 +12,15 @@ export function WelcomeScreen() {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        background: `
-          radial-gradient(ellipse at 50% 30%, rgba(123, 45, 142, 0.15) 0%, transparent 60%),
-          radial-gradient(ellipse at 50% 70%, rgba(196, 78, 139, 0.08) 0%, transparent 50%),
-          var(--bg-primary)
-        `,
+        background: 'var(--bg-primary)',
         padding: 'calc(var(--safe-top) + 24px) 24px calc(var(--safe-bottom) + 24px)',
         overflow: 'hidden',
         position: 'relative',
       }}
     >
-      {/* Animated background orbs */}
-      <div
-        style={{
-          position: 'absolute',
-          top: '15%',
-          left: '20%',
-          width: 200,
-          height: 200,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(123, 45, 142, 0.12) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-          animation: 'float-orb 8s ease-in-out infinite',
-        }}
-      />
-      <div
-        style={{
-          position: 'absolute',
-          bottom: '20%',
-          right: '15%',
-          width: 160,
-          height: 160,
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(0, 212, 170, 0.08) 0%, transparent 70%)',
-          filter: 'blur(40px)',
-          animation: 'float-orb 10s ease-in-out infinite 2s',
-        }}
-      />
-
+      {/* Aurora mesh background */}
+      <div className="aurora-bg" />
+    
       {/* Logo + tagline */}
       <div
         style={{
@@ -59,6 +30,8 @@ export function WelcomeScreen() {
           gap: 12,
           marginBottom: 48,
           animation: 'fade-in-up 0.8s ease',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         {/* Logo dot */}
@@ -75,16 +48,19 @@ export function WelcomeScreen() {
         <h1
           className="gradient-text"
           style={{
+            fontFamily: 'var(--font-display)',
             fontSize: 40,
-            fontWeight: 700,
+            fontWeight: 600,
             letterSpacing: -1,
             margin: 0,
+            lineHeight: 1.1,
           }}
         >
           SoulLink
         </h1>
         <p
           style={{
+            fontFamily: 'var(--font-body)',
             fontSize: 16,
             color: 'var(--text-secondary)',
             textAlign: 'center',
@@ -96,7 +72,7 @@ export function WelcomeScreen() {
           Your AI soul companion — always here, always listening.
         </p>
       </div>
-
+    
       {/* Value props */}
       <div
         style={{
@@ -104,6 +80,8 @@ export function WelcomeScreen() {
           gap: 16,
           marginBottom: 48,
           animation: 'fade-in-up 0.8s ease 0.2s both',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         {[
@@ -113,7 +91,7 @@ export function WelcomeScreen() {
         ].map((item, i) => (
           <div
             key={i}
-            className="glass-panel"
+            className="surface-card pressable"
             style={{
               display: 'flex',
               flexDirection: 'column',
@@ -121,6 +99,7 @@ export function WelcomeScreen() {
               gap: 8,
               padding: '16px 12px',
               width: 90,
+              borderRadius: 18,
             }}
           >
             <item.icon />
@@ -138,7 +117,7 @@ export function WelcomeScreen() {
           </div>
         ))}
       </div>
-
+    
       {/* CTA */}
       <div
         style={{
@@ -149,9 +128,12 @@ export function WelcomeScreen() {
           width: '100%',
           maxWidth: 320,
           animation: 'fade-in-up 0.8s ease 0.4s both',
+          position: 'relative',
+          zIndex: 1,
         }}
       >
         <button
+          className="pressable"
           onClick={() => navigate('characterSelection')}
           style={{
             width: '100%',
@@ -159,21 +141,18 @@ export function WelcomeScreen() {
             borderRadius: 16,
             border: 'none',
             cursor: 'pointer',
-            background: 'linear-gradient(135deg, #7B2D8E, #C44E8B)',
+            background: 'linear-gradient(135deg, var(--color-base), var(--color-accent))',
             color: '#FFFFFF',
             fontSize: 17,
             fontWeight: 600,
-            letterSpacing: 0.5,
+            letterSpacing: 0.3,
+            fontFamily: 'var(--font-body)',
             boxShadow: '0 4px 24px rgba(123, 45, 142, 0.4)',
-            transition: 'transform 0.2s ease, box-shadow 0.3s ease',
           }}
-          onMouseDown={(e) => (e.currentTarget.style.transform = 'scale(0.97)')}
-          onMouseUp={(e) => (e.currentTarget.style.transform = 'scale(1)')}
-          onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
         >
           Begin Your Journey
         </button>
-
+    
         {onboardingComplete && (
           <button
             onClick={() => navigate('chat')}
@@ -185,15 +164,14 @@ export function WelcomeScreen() {
               fontSize: 14,
               padding: '4px 12px',
               transition: 'color 0.2s ease',
+              fontFamily: 'var(--font-body)',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--text-secondary)')}
-            onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--text-muted)')}
           >
             Already connected? Continue
           </button>
         )}
       </div>
-
+    
       {/* Social proof */}
       <p
         style={{
@@ -202,7 +180,9 @@ export function WelcomeScreen() {
           fontSize: 12,
           color: 'var(--text-muted)',
           textAlign: 'center',
+          fontFamily: 'var(--font-body)',
           animation: 'fade-in 1s ease 0.8s both',
+          zIndex: 1,
         }}
       >
         Join thousands building deeper connections

@@ -8,6 +8,7 @@ export type Screen =
   | 'relationshipMode'
   | 'personalityComposer'
   | 'characterCreator'
+  | 'digitalTwinUpload'
   | 'voiceSelection'
   | 'nameStory'
   | 'firstMeeting'

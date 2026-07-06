@@ -62,7 +62,7 @@ export function CharacterCreator() {
 
   const handleContinue = () => {
     updateCustomization({ appearance, visual });
-    navigate('voiceSelection');
+    navigate('digitalTwinUpload');
   };
 
   const tabs: { id: Tab; label: string }[] = [

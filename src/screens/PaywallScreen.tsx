@@ -47,14 +47,16 @@ export function PaywallScreen() {
       display: 'flex',
       flexDirection: 'column',
       padding: 'calc(var(--safe-top) + 20px) 20px calc(var(--safe-bottom) + 20px)',
-      background: `radial-gradient(ellipse at 50% 20%, rgba(123, 45, 142, 0.12) 0%, transparent 60%), var(--bg-primary)`,
+      background: 'var(--bg-primary)',
+      position: 'relative',
     }}>
+      <div className="aurora-bg" />
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 28, animation: 'fade-in-up 0.5s ease' }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: 'var(--text-primary)', letterSpacing: -0.5, margin: 0 }}>
+      <div style={{ textAlign: 'center', marginBottom: 28, animation: 'fade-in-up 0.5s ease', position: 'relative', zIndex: 1 }}>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 600, color: 'var(--text-primary)', letterSpacing: -0.5, margin: 0, lineHeight: 1.15 }}>
           Choose Your Plan
         </h1>
-        <p style={{ fontSize: 14, color: 'var(--text-secondary)', marginTop: 8, lineHeight: 1.5 }}>
+        <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--text-secondary)', marginTop: 8, lineHeight: 1.5 }}>
           Unlock the full SoulLink experience
         </p>
       </div>
@@ -70,12 +72,11 @@ export function PaywallScreen() {
               key={tier.id}
               style={{
                 background: tier.highlight
-                  ? `linear-gradient(135deg, rgba(123, 45, 142, 0.15), rgba(255, 51, 102, 0.08))`
-                  : 'var(--glass-bg)',
-                backdropFilter: 'var(--glass-blur)', WebkitBackdropFilter: 'var(--glass-blur)',
+                  ? `linear-gradient(135deg, rgba(123, 45, 142, 0.12), rgba(255, 51, 102, 0.06))`
+                  : 'var(--surface-1)',
                 border: tier.highlight
                   ? `1.5px solid rgba(123, 45, 142, 0.4)`
-                  : '1px solid var(--glass-border)',
+                  : '1px solid var(--border-subtle)',
                 borderRadius: 18, padding: 20, position: 'relative',
                 animation: `fade-in-up 0.5s ease ${0.1 + index * 0.1}s both`,
               }}
@@ -133,7 +134,7 @@ export function PaywallScreen() {
                       ? `linear-gradient(135deg, var(--color-base), var(--color-accent))`
                       : 'var(--bg-tertiary)',
                   color: isFree ? 'var(--text-secondary)' : '#fff',
-                  border: isFree ? '1px solid var(--glass-border)' : 'none',
+                  border: isFree ? '1px solid var(--border-subtle)' : 'none',
                   opacity: isPurchasing ? 0.7 : 1,
                   boxShadow: !isFree && tier.highlight ? '0 4px 16px rgba(123, 45, 142, 0.3)' : 'none',
                 }}
