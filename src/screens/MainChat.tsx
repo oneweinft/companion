@@ -13,6 +13,10 @@ import { MemoryPeek, useMemoryPeek } from '../components/MemoryPeek';
 import { ImageMessage } from '../components/ImageMessage';
 import { STATE_COLORS } from '../types';
 import { generateCompanionPhoto, isDigitalTwinConfigured } from '../lib/digitalTwin';
+import { useProactiveMessaging } from '../hooks/useProactiveMessaging';
+import { useSoulScore } from '../hooks/useSoulScore';
+import { ProactiveBanner } from '../components/ProactiveBanner';
+import { SoulScoreWidget, AchievementToast } from '../components/SoulScore';
 
 /** Redesigned main chat screen — voice-first with companion portrait, prompts, and memory peek. */
 export function MainChat() {
@@ -53,6 +57,14 @@ export function MainChat() {
   const twinAvailable = isDigitalTwinConfigured();
   const { visible: memoryPeekVisible, setVisible: setMemoryPeekVisible } = useMemoryPeek(isIdle, hasMessages);
 
+  // Proactive messaging — 7-day cycle from prompts_7day.py
+  const { pendingMessage: proactiveMessage, dismissProactive, recordInteraction } = useProactiveMessaging(
+    selectedCompanion?.name ?? null
+  );
+
+  // Soul Score gamification
+  const soulScore = useSoulScore();
+
   // Redirect if no companion selected
   useEffect(() => {
     if (!selectedCompanion) {
@@ -77,6 +89,17 @@ export function MainChat() {
     }
   }, [isIdle, hasMessages, messages]);
 
+  // Soul Score: daily login bonus + voice conversation tracking
+  useEffect(() => { soulScore.recordDailyLogin(); }, []); // eslint-disable-line
+  const prevSpeakingRef = useRef(false);
+  useEffect(() => {
+    if (state === 'speaking' && !prevSpeakingRef.current) {
+      soulScore.recordVoice();
+      recordInteraction();
+    }
+    prevSpeakingRef.current = state === 'speaking';
+  }, [state, soulScore, recordInteraction]);
+
     if (!selectedCompanion) {
     return null;
   }
@@ -87,8 +110,17 @@ export function MainChat() {
 
   const handlePromptSelect = (prompt: string) => {
     sendTextMessage(prompt);
+    soulScore.recordMessage();
+    recordInteraction();
     setMemoryPeekVisible(false);
   };
+
+  // Wrapped sendTextMessage that also records Soul Score + proactive interaction
+  const handleSendText = useCallback((text: string) => {
+    sendTextMessage(text);
+    soulScore.recordMessage();
+    recordInteraction();
+  }, [sendTextMessage, soulScore, recordInteraction]);
 
   // Request companion photo — uses digital-twin-generator for in-chat image generation
   const handleRequestPhoto = useCallback(async () => {
@@ -145,6 +177,25 @@ export function MainChat() {
     >
       {/* Aurora mesh background */}
       <div className="aurora-bg" />
+
+      {/* Proactive message banner (7-day cycle) */}
+      {proactiveMessage && (
+        <ProactiveBanner
+          message={proactiveMessage}
+          companionName={companion.name}
+          accent={accent}
+          onDismiss={dismissProactive}
+          onRespond={(text) => handleSendText(text)}
+        />
+      )}
+
+      {/* Achievement toast (Soul Score) */}
+      {soulScore.newAchievement && (
+        <AchievementToast
+          achievement={soulScore.newAchievement}
+          onDismiss={soulScore.dismissAchievement}
+        />
+      )}
 
       {/* ===== Header ===== */}
       <header
@@ -241,6 +292,42 @@ export function MainChat() {
               </svg>
             </button>
           )}
+          {/* Soul Score widget */}
+          <SoulScoreWidget soulScore={soulScore} accent={accent} onClick={() => navigate('profile')} />
+          {/* Phone call mode button */}
+          <button
+            className="pressable"
+            onClick={() => navigate('phoneCall')}
+            aria-label="Start phone call"
+            style={{
+              width: 32, height: 32, borderRadius: 10,
+              border: 'none', cursor: 'pointer',
+              background: 'var(--surface-2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
+          {/* Group chat button */}
+          <button
+            className="pressable"
+            onClick={() => navigate('groupChat')}
+            aria-label="Group chat"
+            style={{
+              width: 32, height: 32, borderRadius: 10,
+              border: 'none', cursor: 'pointer',
+              background: 'var(--surface-2)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              <circle cx="9" cy="7" r="4" stroke="var(--text-secondary)" strokeWidth="1.5" />
+              <path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" stroke="var(--text-secondary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </button>
           <button
             onClick={() => navigate('profile')}
             aria-label="Companion profile"
@@ -580,7 +667,7 @@ export function MainChat() {
         <div style={{ width: '100%', paddingBottom: 'calc(var(--safe-bottom) + 12px)' }}>
           <TextInputFallback
             state={state}
-            onSend={sendTextMessage}
+            onSend={handleSendText}
             micError={micError}
           />
         </div>

@@ -13,7 +13,10 @@ export type Screen =
   | 'nameStory'
   | 'firstMeeting'
   | 'chat'
-  | 'profile';
+  | 'profile'
+  | 'phoneCall'
+  | 'groupChat'
+  | 'marketplace';
 
 interface AppContextValue {
   currentScreen: Screen;

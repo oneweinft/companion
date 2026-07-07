@@ -14,6 +14,9 @@ import { NameStory } from './screens/NameStory';
 import { FirstMeeting } from './screens/FirstMeeting';
 import { MainChat } from './screens/MainChat';
 import { CompanionProfile } from './screens/CompanionProfile';
+import { PhoneCallMode } from './screens/PhoneCallMode';
+import { GroupChat } from './screens/GroupChat';
+import { Marketplace } from './screens/Marketplace';
 
 function ScreenRouter() {
   const { currentScreen } = useApp();
@@ -41,6 +44,12 @@ function ScreenRouter() {
       return <MainChat />;
     case 'profile':
       return <CompanionProfile />;
+    case 'phoneCall':
+      return <PhoneCallMode />;
+    case 'groupChat':
+      return <GroupChat />;
+    case 'marketplace':
+      return <Marketplace />;
     default:
       return <WelcomeScreen />;
   }

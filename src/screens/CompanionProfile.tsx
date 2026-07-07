@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useApp } from '../context/AppContext';
 import { AvatarRenderer } from '../components/AvatarRenderer';
+import { useSoulScore } from '../hooks/useSoulScore';
+import { SoulScoreSection } from '../components/SoulScore';
 
 /** localStorage key for storing generated photos per companion. */
 function photoKey(companionId: string) {
@@ -41,6 +43,9 @@ export function CompanionProfile() {
 
   const companion = selectedCompanion;
   const accent = companion.accentColor;
+
+  // Soul Score gamification
+  const soulScore = useSoulScore();
 
   // Photo gallery state
   const [photos, setPhotos] = useState<StoredPhoto[]>([]);
@@ -171,6 +176,9 @@ export function CompanionProfile() {
           <StatBlock label="Chats" value={String(stats.conversations)} accent={accent} />
         </div>
       </div>
+
+      {/* Soul Score */}
+      <SoulScoreSection soulScore={soulScore} accent={accent} />
 
       {/* What I know about you */}
       <div
@@ -371,6 +379,34 @@ export function CompanionProfile() {
           <path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" stroke={accent} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
         Switch companion
+      </button>
+
+      {/* Browse marketplace */}
+      <button
+        className="pressable"
+        onClick={() => navigate('marketplace')}
+        style={{
+          width: '100%',
+          padding: '12px 24px',
+          borderRadius: 14,
+          border: `1px solid var(--border-default)`,
+          background: 'var(--surface-1)',
+          color: 'var(--text-secondary)',
+          fontSize: 14,
+          fontWeight: 500,
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          marginBottom: 10,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+          <path d="M3 9l1-5h16l1 5M5 9v11h14V9M9 14h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+        Browse marketplace
       </button>
 
       {/* Reset onboarding */}
